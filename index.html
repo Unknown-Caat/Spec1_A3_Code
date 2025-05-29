@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A3</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        width: 120vw;
+        height: 120vh;
+      }
+      canvas {
+        display: block;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      #overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('background.jpeg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        mask-image: url('connect.svg');
+        mask-size: contain;
+        mask-repeat: no-repeat;
+        mask-position: center;
+      }
+      #aquarium {
+        position: absolute; 
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none; /* Allow interaction with underlying elements */
+      }
+// Nền 
+    </style>
+  </head>
+  <body>
+    <div id="overlay">
+      <canvas id="bubbleCanvas"></canvas>
+    </div>
+    <div id="aquarium">
+      <img src="Chau's elements_BigFishes.svg" class="fish" />
+      <img src="Chau's elements_SmallFishes.svg" class="fish" />
+      <img src="Chau's elements_ClownFish.svg" class="fish " />
+      <img src="Chau's elements_ToadFish.svg" class="fish " />
+      <img src="Chau's elements_Turtle.svg" class="fish " />
+      <img src="Chau's elements_Urchin.svg" class="fish " />
+    </div>
+    <audio id="popSound" src="Bubble.wav"></audio>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="gradient.js"></script>
+    <script>
+      const canvas = document.getElementById('bubbleCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      let bubbles = [];
+      const popSound = document.getElementById('popSound');
+
+      class Bubble {
+        constructor(x, y, radius, speed) {
+          this.x = x;
+          this.y = y;
+          this.radius = radius;
+          this.speed = speed;
+          this.toRemove = false;
+        }
+        update() {
+          this.y -= this.speed;
+          if (this.y + this.radius < 0) {
+            this.toRemove = true;
+          }
+        }
+        draw() {
+          const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+          gradient.addColorStop(0, 'rgba(32,132,107,0)');
+          gradient.addColorStop(1, '#FFFFFF');
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fillStyle = gradient;
+          ctx.fill();
+          ctx.closePath();
+        }
+        pop(clickX, clickY) {
+          const dist = Math.hypot(this.x - clickX, this.y - clickY);
+          if (dist < this.radius) {
+            this.toRemove = true;
+            popSound.currentTime = 0;
+            popSound.play(); // Play pop sound
+            return true;
+          }
+          return false;
+        }
+      }
+
+      function generateBubble() {
+        const x = Math.random() * canvas.width;
+        const y = canvas.height + 20;
+        const radius = Math.random() * 20 + 10;
+        const speed = Math.random() * 2;
+        bubbles.push(new Bubble(x, y, radius, speed));
+      }
+
+      function update() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        bubbles.forEach(bubble => {
+          bubble.update();
+          bubble.draw();
+        });
+        bubbles = bubbles.filter(bubble => !bubble.toRemove);
+        requestAnimationFrame(update);
+      }
+
+      function onCanvasClick(event) {
+        const clickX = event.clientX;
+        const clickY = event.clientY;
+        bubbles.forEach(bubble => {
+          bubble.pop(clickX, clickY);
+        });
+      }
+
+      setInterval(generateBubble, 500);
+      canvas.addEventListener('click', onCanvasClick);
+      update();
+    </script>
+    <audio id="soundtrack" src="Background.wav" loop></audio>
+    <script>
+      const audio = document.getElementById('soundtrack');
+
+      document.addEventListener('click', () => {
+        audio.play().catch(error => {
+          console.log('Audio play failed:', error);
+        });
+      });
+    </script>
+      <script src="script.js"></script>
+    <script>
+  const seaAudio = new Audio('sea.wav');
+  seaAudio.loop = true;
+  seaAudio.volume = 0;
+
+  let currentVolume = 0;
+  let targetVolume = 0;
+  let lastMouseMoveTime = Date.now();
+  let audioStarted = false;
+
+  // Start audio only after user interaction
+  function tryStartAudio() {
+    if (!audioStarted) {
+      seaAudio.play().then(() => {
+        audioStarted = true;
+        console.log("Sea audio started.");
+      }).catch(err => {
+        console.warn("Autoplay blocked:", err);
+      });
+    }
+  }
+
+  // These events all count as user interactions
+  ['click', 'touchstart', 'keydown'].forEach(evt =>
+    window.addEventListener(evt, tryStartAudio)
+  );
+
+  // Update last movement time on mouse move
+  window.addEventListener('mousemove', () => {
+    lastMouseMoveTime = Date.now();
+  });
+
+  function updateVolume() {
+    const now = Date.now();
+    const secondsSinceMove = (now - lastMouseMoveTime) / 1000;
+
+    targetVolume = secondsSinceMove < 1.5 ? 1 : 0;
+
+    const fadeSpeed = 0.01;
+    currentVolume += (targetVolume - currentVolume) * fadeSpeed;
+    currentVolume = Math.max(0, Math.min(1, currentVolume));
+
+    if (audioStarted) {
+      seaAudio.volume = currentVolume;
+    }
+
+    requestAnimationFrame(updateVolume);
+  }
+
+  updateVolume();
+</script>
+  </body>
+</html>

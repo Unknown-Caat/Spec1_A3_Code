@@ -1,0 +1,32 @@
+html, body {
+  margin: 0;
+  overflow: hidden;
+}
+canvas {
+  display: block;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #8f7a66;
+}
+#overlay {
+  background-image: url('background.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  mask-image: url('live.svg');
+  mask-size: 100vmin;
+  mask-repeat: no-repeat;
+  mask-position: center;
+}
+
+ .fish {
+      position: absolute;
+      height: auto;
+      pointer-events: none;
+      transition: transform 100s linear;
+      will-change: transform;
+    }
